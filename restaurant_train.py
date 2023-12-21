@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 import copy
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 import gc
 
 import torch
@@ -57,9 +57,11 @@ def get_labels(df):
     for l, m in zip(labels_matrix, mask):
         x = l[m]
         if len(x) > 0:
-            labels.append(' , '.join(x.tolist()) + ' </s>')
+            # labels.append(' , '.join(x.tolist()) + ' </s>')
+            labels.append(' , '.join(x.tolist()))
         else:
-            labels.append('none </s>')
+            # labels.append('none </s>')
+            labels.append('none')
     return labels
 
 texts = get_texts(train_df)
@@ -70,7 +72,7 @@ class Config:
         super(Config, self).__init__()
 
         self.SEED = 42
-        self.MODEL_PATH = 'google/mt5-base'
+        self.MODEL_PATH = 'google/mt5-small'
 
         # data
         self.TOKENIZER = T5Tokenizer.from_pretrained(self.MODEL_PATH)
@@ -87,7 +89,7 @@ class Config:
         self.CRITERION = 'BCEWithLogitsLoss'
         self.SAVE_BEST_ONLY = True
         self.N_VALIDATE_DUR_TRAIN = 3
-        self.EPOCHS = 1
+        self.EPOCHS = 10
 
 config = Config()
 
@@ -277,13 +279,7 @@ def train(
     epoch
     ):
     
-    # we validate config.N_VALIDATE_DUR_TRAIN times during the training loop
-    nv = config.N_VALIDATE_DUR_TRAIN
-    temp = len(train_dataloader) // nv
-    temp = temp - (temp % 100)
-    validate_at_steps = [temp * x for x in range(1, nv + 1)]
-    
-    print('start training')
+
     train_loss = 0
     for step, batch in enumerate(tqdm(train_dataloader)):
         # set model.eval() every time during training
@@ -318,9 +314,8 @@ def train(
         # update scheduler
         scheduler.step()
 
-        if step in validate_at_steps:
-            print(f'-- Step: {step}')
-            _ = val(model, val_dataloader, criterion)
+    # validate
+    _ = val(model, val_dataloader, criterion)
     
     avg_train_loss = train_loss / len(train_dataloader)
     print('Training loss:', avg_train_loss)
