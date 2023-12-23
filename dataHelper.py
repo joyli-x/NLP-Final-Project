@@ -2,6 +2,106 @@ from datasets import load_dataset, DatasetDict, Dataset
 import json
 import random
 import re
+import pandas as pd
+import numpy as np
+import torch
+
+def clean_review(text):
+    text = text.split()
+    text = [x.strip() for x in text]
+    text = [x.replace('\n', ' ').replace('\t', ' ') for x in text]
+    text = ' '.join(text)
+    text = re.sub('([.,!?()])', r' \1 ', text)
+    return text
+    
+
+def get_texts(df):
+    texts = 'multilabel classification: ' + df['review'].apply(clean_review)
+    texts = texts.values.tolist()
+    return texts
+
+
+def get_labels(df):
+    labels_li = [' '.join(x.lower().split()) for x in df.columns.to_list()[:8]]
+    labels_matrix = np.array([labels_li] * len(df))
+
+    mask = df.iloc[:, :8].values.astype(bool)
+    labels = []
+    for l, m in zip(labels_matrix, mask):
+        x = l[m]
+        if len(x) > 0:
+            # labels.append(' , '.join(x.tolist()) + ' </s>')
+            labels.append(' , '.join(x.tolist()))
+        else:
+            # labels.append('none </s>')
+            labels.append('none')
+    return labels
+
+class T5ResDataset(torch.utils.data.Dataset):
+    def __init__(self, df, indices, config, set_type=None):
+        super(T5ResDataset, self).__init__()
+
+        df = df.iloc[indices]
+        self.texts = get_texts(df)
+        self.set_type = set_type
+        if self.set_type != 'test':
+            self.labels = get_labels(df)
+
+        self.tokenizer = config.TOKENIZER
+        self.src_max_length = config.SRC_MAX_LENGTH
+        self.tgt_max_length = config.TGT_MAX_LENGTH
+
+    def __len__(self):
+        return len(self.texts)
+    
+    def __getitem__(self, index):
+        src_tokenized = self.tokenizer.encode_plus(
+            self.texts[index], 
+            max_length=self.src_max_length,
+            pad_to_max_length=True,
+            truncation=True,
+            return_attention_mask=True,
+            return_token_type_ids=False,
+            return_tensors='pt'
+        )
+        src_input_ids = src_tokenized['input_ids'].squeeze()
+        src_attention_mask = src_tokenized['attention_mask'].squeeze()
+
+        if self.set_type != 'test':
+            tgt_tokenized = self.tokenizer.encode_plus(
+                self.labels[index], 
+                max_length=self.tgt_max_length,
+                pad_to_max_length=True,
+                truncation=True,
+                return_attention_mask=True,
+                return_token_type_ids=False,
+                return_tensors='pt'
+            )
+            tgt_input_ids = tgt_tokenized['input_ids'].squeeze()
+            tgt_attention_mask = tgt_tokenized['attention_mask'].squeeze()
+
+            return {
+                'src_input_ids': src_input_ids.long(),
+                'src_attention_mask': src_attention_mask.long(),
+                'tgt_input_ids': tgt_input_ids.long(),
+                'tgt_attention_mask': tgt_attention_mask.long()
+            }
+
+        return {
+            'src_input_ids': src_input_ids.long(),
+            'src_attention_mask': src_attention_mask.long()
+        }
+def get_res_classification_dataset(file_path, config):
+    train_df = pd.read_csv(file_path)
+    label_list = [' '.join(x.lower().split()) for x in train_df.columns.to_list()[:8]]
+    # train-val split
+    np.random.seed(config.SEED)
+    dataset_size = len(train_df)
+    indices = list(range(dataset_size))
+    split = int(np.floor(config.VALIDATION_SPLIT * dataset_size))
+    np.random.shuffle(indices)
+    train_indices, val_indices = indices[split:], indices[:split]
+    return T5ResDataset(train_df, train_indices, config), T5ResDataset(train_df, val_indices, config), label_list
 
 def sample_few_shot(data, num_samples_per_class, label_key='labels'):
     # According to paper, for dataset with less than 5 labels, sample 32 examples and try to balance the number pf each class

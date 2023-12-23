@@ -7,6 +7,11 @@ import re
 import copy
 from tqdm import tqdm
 import gc
+import wandb
+import logging
+import argparse
+from utils import ResClassificationConfig, get_ohe
+from dataHelper import get_res_classification_dataset
 
 import torch
 import torch.nn as nn
@@ -15,7 +20,9 @@ from torch import optim
 from torch.utils.data import Dataset, DataLoader
 
 from sklearn.metrics import (
-    accuracy_score, 
+    accuracy_score,
+    precision_score, 
+    recall_score,
     f1_score, 
     classification_report
 )
@@ -24,142 +31,42 @@ from transformers import (
     T5Tokenizer, 
     T5Model,
     T5ForConditionalGeneration,
+    MT5ForConditionalGeneration,
+    MT5Model,
     get_linear_schedule_with_warmup
 )
 
+parser = argparse.ArgumentParser(description='Configurations for the model and training process.')
 
-# BUG 这里还差wandb的部分
+parser.add_argument('--seed', type=int, default=42, help='Random seed for initialization')
+parser.add_argument('--model_path', type=str, default='t5-base', help='Path to the pre-trained model')
+parser.add_argument('--src_max_length', type=int, default=450, help='Maximum source sequence length')
+parser.add_argument('--tgt_max_length', type=int, default=20, help='Maximum target sequence length')
+parser.add_argument('--batch_size', type=int, default=16, help='Batch size for training and evaluation')
+parser.add_argument('--validation_split', type=float, default=0.25, help='Fraction of the data to use as validation')
+parser.add_argument('--full_finetuning', type=bool, default=True, help='Whether to fine tune the entire model or just the head')
+parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate')
+parser.add_argument('--optimizer', type=str, default='AdamW', help='Optimizer to use for training')
+parser.add_argument('--save_best_only', type=bool, default=True, help='Whether to save only the best model')
+parser.add_argument('--n_validate_dur_train', type=int, default=3, help='Number of validation runs during training')
+parser.add_argument('--epochs', type=int, default=100, help='Number of epochs for training')
+parser.add_argument('--use_mt5', type=bool, default=False, help='Whether to use mt5')
+parser.add_argument('--resume_ckp_path', type=str, default=None, help='resume from ckp')
+args = parser.parse_args()
 
-train_df = pd.read_csv('./data/restaurant/res_data.csv')
+config = ResClassificationConfig(args)
 
-# preprocessing
-def clean_review(text):
-    text = text.split()
-    text = [x.strip() for x in text]
-    text = [x.replace('\n', ' ').replace('\t', ' ') for x in text]
-    text = ' '.join(text)
-    text = re.sub('([.,!?()])', r' \1 ', text)
-    return text
-    
+# Initialize Weights & Biases
+wandb.init(project='nlp_proj', name=f'res_{args.model_path}_seed_{args.seed}')
+wandb.config.update(args) 
 
-def get_texts(df):
-    texts = 'multilabel classification: ' + df['review'].apply(clean_review)
-    texts = texts.values.tolist()
-    return texts
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-
-def get_labels(df):
-    labels_li = [' '.join(x.lower().split()) for x in df.columns.to_list()[:8]]
-    labels_matrix = np.array([labels_li] * len(df))
-
-    mask = df.iloc[:, :8].values.astype(bool)
-    labels = []
-    for l, m in zip(labels_matrix, mask):
-        x = l[m]
-        if len(x) > 0:
-            # labels.append(' , '.join(x.tolist()) + ' </s>')
-            labels.append(' , '.join(x.tolist()))
-        else:
-            # labels.append('none </s>')
-            labels.append('none')
-    return labels
-
-texts = get_texts(train_df)
-labels = get_labels(train_df)
-
-class Config:
-    def __init__(self):
-        super(Config, self).__init__()
-
-        self.SEED = 42
-        self.MODEL_PATH = 't5-base'
-
-        # data
-        self.TOKENIZER = T5Tokenizer.from_pretrained(self.MODEL_PATH)
-        self.SRC_MAX_LENGTH = 450
-        self.TGT_MAX_LENGTH = 20
-        self.BATCH_SIZE = 16
-        self.VALIDATION_SPLIT = 0.25
-
-        # model
-        self.DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.FULL_FINETUNING = True
-        self.LR = 3e-5
-        self.OPTIMIZER = 'AdamW'
-        self.CRITERION = 'BCEWithLogitsLoss'
-        self.SAVE_BEST_ONLY = True
-        self.N_VALIDATE_DUR_TRAIN = 3
-        self.EPOCHS = 10
-
-config = Config()
-
-class T5Dataset(Dataset):
-    def __init__(self, df, indices, set_type=None):
-        super(T5Dataset, self).__init__()
-
-        df = df.iloc[indices]
-        self.texts = get_texts(df)
-        self.set_type = set_type
-        if self.set_type != 'test':
-            self.labels = get_labels(df)
-
-        self.tokenizer = config.TOKENIZER
-        self.src_max_length = config.SRC_MAX_LENGTH
-        self.tgt_max_length = config.TGT_MAX_LENGTH
-
-    def __len__(self):
-        return len(self.texts)
-    
-    def __getitem__(self, index):
-        src_tokenized = self.tokenizer.encode_plus(
-            self.texts[index], 
-            max_length=self.src_max_length,
-            pad_to_max_length=True,
-            truncation=True,
-            return_attention_mask=True,
-            return_token_type_ids=False,
-            return_tensors='pt'
-        )
-        src_input_ids = src_tokenized['input_ids'].squeeze()
-        src_attention_mask = src_tokenized['attention_mask'].squeeze()
-
-        if self.set_type != 'test':
-            tgt_tokenized = self.tokenizer.encode_plus(
-                self.labels[index], 
-                max_length=self.tgt_max_length,
-                pad_to_max_length=True,
-                truncation=True,
-                return_attention_mask=True,
-                return_token_type_ids=False,
-                return_tensors='pt'
-            )
-            tgt_input_ids = tgt_tokenized['input_ids'].squeeze()
-            tgt_attention_mask = tgt_tokenized['attention_mask'].squeeze()
-
-            return {
-                'src_input_ids': src_input_ids.long(),
-                'src_attention_mask': src_attention_mask.long(),
-                'tgt_input_ids': tgt_input_ids.long(),
-                'tgt_attention_mask': tgt_attention_mask.long()
-            }
-
-        return {
-            'src_input_ids': src_input_ids.long(),
-            'src_attention_mask': src_attention_mask.long()
-        }
-
-# train-val split
-np.random.seed(config.SEED)
-dataset_size = len(train_df)
-indices = list(range(dataset_size))
-split = int(np.floor(config.VALIDATION_SPLIT * dataset_size))
-np.random.shuffle(indices)
-train_indices, val_indices = indices[split:], indices[:split]
 
 # dataset and dataloader
-train_data = T5Dataset(train_df, train_indices)
-val_data = T5Dataset(train_df, val_indices)
-
+train_data, val_data, label_list = get_res_classification_dataset('./data/restaurant/res_data.csv', config)
 train_dataloader = DataLoader(train_data, batch_size=config.BATCH_SIZE)
 val_dataloader = DataLoader(val_data, batch_size=config.BATCH_SIZE)
 
@@ -187,28 +94,32 @@ class T5Model(nn.Module):
             labels=lm_labels,
         )
 
+class MT5Model(nn.Module):
+    def __init__(self):
+        super(MT5Model, self).__init__()
+
+        self.t5_model = MT5ForConditionalGeneration.from_pretrained(config.MODEL_PATH)
+
+    def forward(
+        self,
+        input_ids, 
+        attention_mask=None, 
+        decoder_input_ids=None, 
+        decoder_attention_mask=None, 
+        lm_labels=None
+        ):
+
+        return self.t5_model(
+            input_ids,
+            attention_mask=attention_mask,
+            decoder_input_ids=decoder_input_ids,
+            decoder_attention_mask=decoder_attention_mask,
+            labels=lm_labels,
+        )
+
 device = config.DEVICE
 
 # engine
-# the get_ohe function converts the decoder generated labels from textual -
-# - format to a one hot encoded form, in order to calculate the micro f1 score
-def get_ohe(x):
-    labels_li = ['_'.join(x.lower().split()) for x in train_df.columns.to_list()[:8]]
-    labels_li_indices = dict()
-    for idx, label in enumerate(labels_li):
-        labels_li_indices[label] = idx
-        
-    y = [labels.split(', ') for labels in x]
-    ohe = []
-    for labels in y:
-        temp = [0] * 8
-        for label in labels:
-            idx = labels_li_indices.get(label, -1)
-            if idx != -1:
-                temp[idx] = 1
-        ohe.append(temp)
-    ohe = np.array(ohe)
-    return ohe
 
 def val(model, val_dataloader, criterion):
     
@@ -238,7 +149,7 @@ def val(model, val_dataloader, criterion):
                 attention_mask=b_src_attention_mask,
                 lm_labels=lm_labels,
                 decoder_attention_mask=b_tgt_attention_mask)
-            loss = outputs[0]
+            loss = outputs.loss
 
             val_loss += loss.item()
 
@@ -257,16 +168,25 @@ def val(model, val_dataloader, criterion):
                 pred_decoded = config.TOKENIZER.decode(pred_id)
                 pred.append(pred_decoded)
 
-    true_ohe = get_ohe(true)
-    pred_ohe = get_ohe(pred)
+    true_ohe = get_ohe(true, label_list)
+    pred_ohe = get_ohe(pred, label_list)
 
     avg_val_loss = val_loss / len(val_dataloader)
-    print('Val loss:', avg_val_loss)
-    print('Val accuracy:', accuracy_score(true_ohe, pred_ohe))
+    val_accuracy = accuracy_score(true_ohe, pred_ohe)
+    val_f1_score = f1_score(true_ohe, pred_ohe, average='samples')
+    val_recall_score = recall_score(true_ohe, pred_ohe, average='samples')
+    val_precision_score = precision_score(true_ohe, pred_ohe, average='samples')
 
-    val_micro_f1_score = f1_score(true_ohe, pred_ohe, average='micro')
-    print('Val micro f1 score:', val_micro_f1_score)
-    return val_micro_f1_score
+    metrics = {
+        "Val Loss": avg_val_loss,
+        "Val Accuracy": val_accuracy,
+        "Val F1 Score": val_f1_score,
+        "Val Recall Score": val_recall_score,
+        "Val Precision Score": val_precision_score
+    }
+    wandb.log(metrics)
+    logger.info(metrics)
+    return val_f1_score
 
 
 def train(
@@ -278,7 +198,6 @@ def train(
     scheduler, 
     epoch
     ):
-    
 
     train_loss = 0
     for step, batch in enumerate(tqdm(train_dataloader)):
@@ -302,7 +221,7 @@ def train(
                         attention_mask=b_src_attention_mask,
                         lm_labels=lm_labels,
                         decoder_attention_mask=b_tgt_attention_mask)
-        loss = outputs[0]
+        loss = outputs.loss
         train_loss += loss.item()
 
         # backward pass
@@ -314,11 +233,10 @@ def train(
         # update scheduler
         scheduler.step()
 
-    # validate
-    _ = val(model, val_dataloader, criterion)
     
     avg_train_loss = train_loss / len(train_dataloader)
-    print('Training loss:', avg_train_loss)
+    wandb.log({'Train Loss': avg_train_loss})
+    logger.info(f'Training loss: {avg_train_loss}')
 
 # run
 def run(model):
@@ -358,6 +276,7 @@ def run(model):
 
     max_val_micro_f1_score = float('-inf')
     for epoch in range(config.EPOCHS):
+        logger.info(f'Epoch {epoch}')
         train(model, train_dataloader, val_dataloader, criterion, optimizer, scheduler, epoch)
         val_micro_f1_score = val(model, val_dataloader, criterion)
 
@@ -366,15 +285,18 @@ def run(model):
                 best_model = copy.deepcopy(model)
                 best_val_micro_f1_score = val_micro_f1_score
 
-                model_name = 't5_best_model'
+                model_name = f"./ckpts/res_{args.model_path.replace('/','_')}_seed_{args.seed}"
                 torch.save(best_model.state_dict(), model_name + '.pt')
 
-                print(f'--- Best Model. Val loss: {max_val_micro_f1_score} -> {val_micro_f1_score}')
+                logger.info(f'--- Best Model. F1 score: {max_val_micro_f1_score} -> {val_micro_f1_score}')
                 max_val_micro_f1_score = val_micro_f1_score
 
     return best_model, best_val_micro_f1_score
 
-model = T5Model()
+if args.use_mt5:
+    model = MT5Model()
+else:
+    model = T5Model()
 model.t5_model.resize_token_embeddings(len(config.TOKENIZER))
 model.to(device)
 
