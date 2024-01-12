@@ -16,7 +16,7 @@ def clean_review(text):
     
 
 def get_texts(df):
-    texts = 'multilabel classification: ' + df['review'].apply(clean_review)
+    texts = 'restaurant review multilabel classification: ' + df['review'].apply(clean_review)
     texts = texts.values.tolist()
     return texts
 
@@ -101,7 +101,9 @@ def get_res_classification_dataset(file_path, config):
     split = int(np.floor(config.VALIDATION_SPLIT * dataset_size))
     np.random.shuffle(indices)
     train_indices, val_indices = indices[split:], indices[:split]
-    return T5ResDataset(train_df, train_indices, config), T5ResDataset(train_df, val_indices, config), label_list
+    len_val = len(val_indices)
+    val_indices, test_indices = val_indices[:len_val//2], val_indices[len_val//2:]
+    return T5ResDataset(train_df, train_indices, config), T5ResDataset(train_df, val_indices, config), T5ResDataset(train_df, test_indices, config), label_list
 
 def sample_few_shot(data, num_samples_per_class, label_key='labels'):
     # According to paper, for dataset with less than 5 labels, sample 32 examples and try to balance the number pf each class

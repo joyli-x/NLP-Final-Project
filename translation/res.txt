@@ -1,0 +1,158 @@
+case598: 
+en: Earth is a distance of 93 million miles from the sun, whereas WASP-18b is only 1.4 million miles from its star.
+gt translation: 地球距离太阳9300万英里，而WASP-18b距离其恒星只有140万英里。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 地球距离距离93亿英里的地方,而距离其星球只有141万英里。
+45000 finetuned model translation: 地球距离太阳高达93万英里,而SPIS-18b距离太阳只有150万英里。
+2
+
+case264: 
+en: Torrential rains have been plaguing the nine southernmost provinces of the country for nearly two weeks and further downpours are forecast for later this week.
+gt translation: 近两周来，暴雨一直困扰着该国最南端的九个省份，预计本周晚些时候还会有更多的暴雨。
+original model translation: <extra_id_0> rains
+11000 finetuned model translation: 本周早些时候,该国九个南部省的暴雨已造成近两周的洪水,本周晚些时候进一步降雨。
+45000 finetuned model translation: 暴雨已导致该国9个南部省份近两周,预计本周晚些时候将进一步降雨。
+2
+
+case130: 
+en: U.N special coordinator for Middle East Peace, Robert Serry, condemned the evictions as "totally unacceptable".
+gt translation: 联合国中东和平特别协调员罗伯特·塞里谴责这些驱逐行为“完全不可接受”。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 联合国中东和平特别协调员罗伯特·塞里谴责驱逐行动“完全不可接受”。
+45000 finetuned model translation: 中东和平特别负责人罗伯特·塞里谴责驱逐行为是“完全无视的”。
+1
+
+case560: 
+en: World Wrestling Entertainment released a statement on the death Cade through its website.
+gt translation: 世界摔跤娱乐通过其网站发布了一份关于凯德死亡的声明。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 世界摔跤娱乐公司在其网站上发表声明。
+45000 finetuned model translation: 世界摔跤娱乐公司通过其网站发布关于死者事件的声明。
+2
+
+case239: 
+en: The Associated Press reported that Bly "said at a briefing in Washington that the internal report was a reconstruction of what happened on the rig based on the company's data and interviews with mostly BP employees and was not meant to focus on assigning blame."
+gt translation: 据美联社报道，布莱“在华盛顿举行的一次简报会上说，内部报告是根据公司的数据和对英国石油公司员工的采访来重现钻机上发生的事情，并非专注于责任归咎。”
+original model translation: <extra_id_0>
+11000 finetuned model translation: 美联社报道说,上述内部报告是根据该公司的数据和采访公司大部分英国石油公司的雇员的报告进行了重新评估,并不打算把指控。”
+45000 finetuned model translation: 美联社报道说,比利“在华盛顿的一份简报中说,内部报告是基于该公司的数据和与大部分英国石油公司员工的采访以及对大部分英国石油公司员工的采访,但并未考虑考虑分发指控。”
+2
+
+case454: 
+en: Passengers were interviewed by FBI agents, and dogs searched all the luggage on board.
+gt translation: 美国联邦调查局特工对乘客进行了问讯，警犬检查了机上所有行李。
+original model translation: <extra_id_0>.,ловна
+11000 finetuned model translation: 警卫被联邦调查局的代理人问及,狗在飞机上搜查了全部物品。
+45000 finetuned model translation: 乘客被联邦调查局的官员接受采访,狗们搜查了机上的所有物品。
+2
+
+case67: 
+en: Reporters Without Borders (RWB) have appealed for punishment of those responsible for the murder.
+gt translation: 无国界记者组织（RWB）已呼吁对那些谋杀责任人进行惩罚。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 无国界记者(RUB)呼吁对负责谋杀的人惩罚。
+45000 finetuned model translation: 无国界记者(RWB)呼吁惩罚那些犯有谋杀罪的人。
+2
+
+case470: 
+en: He replied: "I think people are pretty relaxed about this."
+gt translation: 他回答：“我认为人们对此是无拘无束的。”
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 他回答说:“我认为人们对这个问题感到非常沉重。”
+45000 finetuned model translation: 他回答说:“我认为人们对这件事感到非常舒适。”
+2
+
+case953: 
+en: The Pentagon has confirmed that US forces began an on-going operation of airstrikes in southern Somalia on Monday, and that the attacks, targeted at Islamic militia, are continuing.
+gt translation: 五角大楼证实，美国军队周一开始对索马里南部进行空袭，而针对伊斯兰民兵的袭击仍在继续。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 五角大楼证实,美国部队周一开始在索马里南部进行空袭,对伊斯兰民兵的攻击正在继续。
+45000 finetuned model translation: 五角大楼证实,美国部队周一开始在索马里南部进行空袭,并且针对伊斯兰军队的袭击正在继续进行。
+1
+
+case19: 
+en: The blast happened at 7:18PM, around the time workers change shifts.
+gt translation: 爆炸发生在下午7：18，工人换班时。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 爆炸发生在下午8点18分,当时工人改变了方向。
+45000 finetuned model translation: 爆炸发生在上午8点18分,当时工人改动。
+2
+
+case235: 
+en: He did, however, reject suggestions that cost-cutting had put lives at risk and the rig was a disaster waiting to happen.
+gt translation: 然而，他确实拒绝了削减成本使生命处于危险之中的建议，钻井平台等待发生灾难。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 然而,他拒绝了关于成本削减的建议,钻井是等待着的灾难。
+45000 finetuned model translation: 然而,他拒绝提出成本削减导致生命危险,钻井是等待的灾难。
+2
+
+case906: 
+en: "...people understand renewables is the next big thing and we should get on with it," said Maf Smith, CEO of Scottish Renewables to BBC.
+gt translation: 苏格兰可再生能源组织首席执行官麦夫·史密斯对英国广播公司说：“……大家都知道，可再生能源是接下来的一件大事，我们应该继续干下去”。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 苏格兰广播公司首席执行官马尔·史密斯说:“......人们明白,可再生能源是下一个重要的事情,我们应该再这样做。”
+45000 finetuned model translation: 苏格兰重建公司首席执行官马尔·史密斯说:“......人们理解废物是下一步最重要的事情,我们应该与它合作。”
+1
+
+case858: 
+en: It is also alleged to have pledged upwards of £3 million into tobacco firms.
+gt translation: 据称，该公司还承诺向烟草公司提供300万英镑以上的资金。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 据称,这已经向烟草公司承诺向烟草公司承诺约为3亿英镑。
+45000 finetuned model translation: 据称,该公司还承诺向烟草公司承诺将超过3500万英镑。
+2
+
+case110: 
+en: Dr. Aafia Siddiqui is still currently facing trial charged with attempting to kill American soldiers in Afghanistan.
+gt translation: 阿菲亚·西迪基博士目前仍面临试图在阿富汗杀害美国士兵的指控。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 艾哈迈·辛迪奇博士目前正在面临被指控在阿富汗谋杀美国士兵。
+45000 finetuned model translation: 阿加瓦·辛迪奇博士目前正在接受审判,指控在阿富汗杀害美国士兵。
+1
+
+case244: 
+en: "The age of oil is coming to an end and companies like BP will be left behind unless they begin to adapt now."
+gt translation: “石油时代即将结束，像英国石油公司这样的公司将被抛在后面，除非他们现在开始适应。”
+original model translation: <extra_id_0>
+11000 finetuned model translation: “石油公司的年龄即将结束,除非他们开始适应这种变化,否则石油公司的公司将离开”。
+45000 finetuned model translation: “石油年龄即将结束,除非他们开始适应,否则石油公司就会离开。”
+2
+
+case252: 
+en: "This was clearly not done, repeatedly, in the case of the Macondo well, and disaster resulted."
+gt translation: “在梅肯井中，显然没有这样做，反复发生，并造成了灾难。”
+original model translation: <extra_id_0>.
+11000 finetuned model translation: “这明显没有发生,在麦戈多豪尔案件,灾难导致了。”
+45000 finetuned model translation: “在麦戈诺德河上,这场灾难显然没有发生,而且造成了灾难。”
+
+
+case416: 
+en: United States President George Bush has arrived in Saudi Arabia, where he is expected to attempt to encourage support for Israeli-Palestinian peace talks and U.S.-led efforts to contain Iran.
+gt translation: 美国总统乔治·布什抵达沙特阿拉伯，预计他将试图鼓励支持巴以和谈和美国领导的遏制伊朗的努力。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 美国总统乔治·布什抵达沙特阿拉伯,他预计将鼓励以色列-巴勒斯坦和平谈判和美国领导的努力来控制伊朗。
+45000 finetuned model translation: 美国总统乔治·布什抵达沙特阿拉伯,他预计将试图鼓励以色列和巴勒斯坦和平谈判以及美国领导的努力。
+1
+
+case300: 
+en: "I started looking at impossible places on the planet in the past year, and I said Antarctica is one of those impossible places, and if we can create an expedition, perhaps we can inspire a bunch of young people to realize they can achieve," Zahab said.
+gt translation: 扎哈布说：“去年，我开始关注我们这颗星球上的一些不可能到达的地方。我说，南极洲就是其中的一个。如果我们能够首先来一次历险，也许就可以激励一批年轻人，让他们意识到自己也能做到”。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 扎哈布说:“过去一年,我开始研究地球上的不可能地点,我说阿尔塔塔是那些不可能的地点之一,如果我们可以创建一次探险,也许我们可以激发一群年轻人意识到他们可以实现的目标。”
+45000 finetuned model translation: 扎哈夫说:“我过去一年开始研究地球的不可能地点,我说阿特里塔卡是这个不可能的地方之一,如果我们可以创造一次探险,也许我们可以激发一群年轻的人来实现他们可以实现的目标。”
+
+
+case826: 
+en: The Chinooks can dump more water in fewer trips than the smaller helicopters.
+gt translation: 与小型直升机相比，奇努克能在较少的航次里倾倒更多的水。
+original model translation: <extra_id_0>
+11000 finetuned model translation: 切诺克试图在较少的旅行中弥撒更多的水。
+45000 finetuned model translation: 在较少的直升机上,切尼斯可能在较少的旅行中消耗更多的水。
+
+
+case223: 
+en: The energy editor of The Guardian, Terry Macalister, wrote that the "catalogue of errors - both human and mechanical" in the report "demolish" the oil industry's "much quoted mantra" of safety first.
+gt translation: 卫报的能源编辑特里·麦卡利斯特写道，报告中的“人为和机械双方的一连串错误”，“摧毁”石油行业被广泛引用的准则“安全第一”。
+original model translation: <extra_id_0>.
+11000 finetuned model translation: 《卫报》能源编辑特里·马卡利斯特在报告中写道,这份报告中的“记录错误记录-包括人类和机械”在报告中“诽谤”石油工业“大量引用了安全第一句话”。
+45000 finetuned model translation: 《卫报》能源编辑特里·马克莱斯特写道,这份报告中“纠正”了石油业“大量引用”安全的“令人担忧”。

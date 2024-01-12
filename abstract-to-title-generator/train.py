@@ -21,14 +21,13 @@ parser.add_argument('--lr', type=float, default=5.6e-5, help='Learning rate')
 parser.add_argument('--weight_decay', type=float, default=0.01, help='Weight decay')
 parser.add_argument('--optimizer', type=str, default='AdamW', help='Optimizer to use for training')
 parser.add_argument('--epochs', type=int, default=100, help='Number of epochs for training')
-parser.add_argument('--use_mt5', type=bool, default=False, help='Whether to use mt5')
 parser.add_argument('--resume_ckp_path', type=str, default=None, help='Resume from ckp')
 parser.add_argument('--task_name', type=str, default='a2t', help='Task name')
 parser.add_argument('--lr_scheduler_type', type=str, default='linear', help='Learning rate scheduler type')
 args = parser.parse_args()
 
 # Initialize Weights & Biases
-wandb.init(project='nlp_proj', name=f'{args.task_name}_{args.model_path}_seed_{args.seed}')
+wandb.init(project='nlp_proj', name=f"{args.task_name}_{args.model_path.split('/')[-1]}_lr_{args.lr}")
 wandb.config.update(args) 
 
 # Set up logging
@@ -38,8 +37,7 @@ logger = logging.getLogger(__name__)
 # Set seed before initializing model.
 set_seed(args.seed)
 
-# Initialize T5-base tokenizer
-# BUG 这里mt5可能会有问题，待会再说吧
+# Initialize tokenizer
 tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
 # Load the processed data
@@ -78,7 +76,7 @@ save_steps = 1000
 
 # Define training arguments
 training_args = Seq2SeqTrainingArguments(
-    output_dir=f"out/a2t_{args.model_path.replace('/','_')}_seed_{args.seed}_lr_{args.lr}",
+    output_dir=f"out/{args.task_name}_{args.model_path.split('/')[-1]}_seed_{args.seed}_lr_{args.lr}",
     evaluation_strategy="steps",
     eval_steps=eval_every,
     learning_rate=args.lr,

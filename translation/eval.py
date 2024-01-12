@@ -9,14 +9,15 @@ import torch
 from datasets import load_dataset, load_from_disk, load_metric
 from transformers import get_linear_schedule_with_warmup
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AdamW, \
-                         DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, set_seed
+                         DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, set_seed, TrainerCallback
+from rouge_chinese import Rouge
 
 nltk.download('punkt')
 
 parser = argparse.ArgumentParser(description='Configurations for the model and training process.')
 parser.add_argument('--seed', type=int, default=42, help='Random seed for initialization')
 parser.add_argument('--model_path', type=str, default='google/mt5-small', help='Path to the pre-trained model')
-parser.add_argument('--src_max_length', type=int, default=512, help='Maximum source sequence length')
+parser.add_argument('--src_max_length', type=int, default=128, help='Maximum source sequence length')
 parser.add_argument('--tgt_max_length', type=int, default=128, help='Maximum target sequence length')
 parser.add_argument('--batch_size', type=int, default=16, help='Batch size for training and evaluation')
 parser.add_argument('--lr', type=float, default=5e-4, help='Learning rate')
@@ -29,8 +30,8 @@ parser.add_argument('--lr_scheduler_type', type=str, default='linear', help='Lea
 args = parser.parse_args()
 
 # Initialize Weights & Biases
-wandb.init(project='nlp_proj', name=f'{args.task_name}_{args.model_path}_seed_{args.seed}')
-wandb.config.update(args) 
+# wandb.init(project='nlp_proj', name=f"{args.task_name}_{args.model_path.split('/')[-1]}_lr_{args.lr}")
+# wandb.config.update(args) 
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -38,104 +39,55 @@ logger = logging.getLogger(__name__)
 
 # Set seed before initializing model.
 set_seed(args.seed)
-
-# BUG 之后得调
-max_seq_len = 20
+torch.manual_seed(args.seed)
 
 # Model
 tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 model = AutoModelForSeq2SeqLM.from_pretrained(args.model_path)
 model = model.cuda()
 
-# Metrics
-rouge_score = evaluate.load("rouge")
-bleu_score = evaluate.load("bleu")
+logger.info(f'model: {args.model_path}')
 
 # Data
-dataset = load_dataset('alt', cache_dir='data')
-
-LANG_TOKEN_MAPPING = {
-    'en': '<en>',
-    'zh': '<zh>'
-}
-
-special_tokens_dict = {'additional_special_tokens': list(LANG_TOKEN_MAPPING.values())}
-tokenizer.add_special_tokens(special_tokens_dict)
-model.resize_token_embeddings(len(tokenizer))
-
-def encode_input_str(text, target_lang, tokenizer, seq_len,
-                     lang_token_map=LANG_TOKEN_MAPPING):
-  target_lang_token = lang_token_map[target_lang]
-
-  # Tokenize and add special tokens
-  input_ids = tokenizer.encode(
-      text = target_lang_token + text,
-      return_tensors = 'pt',
-      padding = 'max_length',
-      truncation = True,
-      max_length = seq_len)
-
-  return input_ids[0]
-
-def encode_target_str(text, tokenizer, seq_len,
-                      lang_token_map=LANG_TOKEN_MAPPING):
-  token_ids = tokenizer.encode(
-      text = text,
-      return_tensors = 'pt',
-      padding = 'max_length',
-      truncation = True,
-      max_length = seq_len)
-  
-  return token_ids[0]
-
-def format_translation_data(translations, lang_token_map,
-                            tokenizer, seq_len=128):
-  # Get the languages in the translation
-  langs = list(lang_token_map.keys())
-  input_lang, target_lang = 'en', 'zh'
-
-  # Get the translations for the batch
-  input_text = translations[input_lang]
-  target_text = translations[target_lang]
-
-  if input_text is None or target_text is None:
-    return None
-
-  input_token_ids = encode_input_str(
-      input_text, target_lang, tokenizer, seq_len, lang_token_map)
-  
-  target_token_ids = encode_target_str(
-      target_text, tokenizer, seq_len, lang_token_map)
-
-  return input_token_ids, target_token_ids
-
-def transform_batch(batch):
-  inputs = []
-  targets = []
-  for translation_set in batch['translation']:
-    formatted_data = format_translation_data(
-        translation_set, LANG_TOKEN_MAPPING, tokenizer, max_seq_len)
-    
-    if formatted_data is None:
-      continue
-    
-    input_ids, target_ids = formatted_data
-    inputs.append(input_ids.unsqueeze(0))
-    targets.append(target_ids.unsqueeze(0))
-    
-  batch_input_ids = torch.cat(inputs).cuda()
-  batch_target_ids = torch.cat(targets).cuda()
-
-  return batch_input_ids, batch_target_ids
-
-
-dataset_dict_tokenized = dataset.map(
-    transform_batch,
-    batched=True,
-    remove_columns=dataset["train"].column_names
+data_files = {'train': './data/alt/train.csv', 'validation': './data/alt/val.csv', 'test': './data/alt/test.csv'}
+dataset_dict = load_dataset(
+    "csv",
+    delimiter=",",
+    column_names=['en', 'zh'],
+    data_files=data_files
 )
-print(dataset_dict_tokenized)
-assert 0
+dataset_dict['test'] = dataset_dict['test'].select(range(1000))
+
+# def transform_features_translation(example):
+#     # Engilsh to Chinese
+#     new_example = {'en': 'translate English to Chinese: ' + example['en'], 'zh': example['zh']}
+#     return new_example
+
+# # Process dataset
+# dataset_dict = dataset_dict.map(transform_features_translation, remove_columns=['en', 'zh'])
+
+def batch_tokenize_fn(examples):
+    sources = examples['en']
+    targets = examples['zh']
+    model_inputs = tokenizer(sources, max_length=args.src_max_length, truncation=True)
+
+    with tokenizer.as_target_tokenizer():
+        labels = tokenizer(targets, max_length=args.tgt_max_length, truncation=True)
+
+    # Replace all pad token ids in the labels by -100 to ignore padding in the loss
+    labels["input_ids"] = [
+        [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+    ]
+
+    model_inputs["labels"] = labels["input_ids"]
+    return model_inputs
+
+
+dataset_dict_tokenized = dataset_dict.map(
+    batch_tokenize_fn,
+    batched=True,
+    remove_columns=dataset_dict["train"].column_names
+)
 
 log_every = 500
 eval_every = 500
@@ -144,7 +96,7 @@ save_steps = 500
 
 # Define training arguments
 training_args = Seq2SeqTrainingArguments(
-    output_dir=f"out/trans_{args.model_path.replace('/','_')}_seed_{args.seed}",
+    output_dir=f"out/{args.task_name}_{args.model_path.split('/')[-1]}_seed_{args.seed}_lr_{args.lr}",
     evaluation_strategy="steps",
     eval_steps=eval_every,
     learning_rate=args.lr,
@@ -159,12 +111,13 @@ training_args = Seq2SeqTrainingArguments(
     logging_steps=log_every,
     group_by_length=True,
     lr_scheduler_type=args.lr_scheduler_type,
-    report_to="wandb",
+    report_to=None,
 )
 
 # Define metrics on evaluation data
-rouge_score = evaluate.load("rouge")
+rouge_score = Rouge()
 bleu_score = evaluate.load("bleu")
+sacrebleu_score = evaluate.load("sacrebleu")
 
 def compute_metrics(eval_pred):
     predictions, labels = eval_pred
@@ -174,17 +127,23 @@ def compute_metrics(eval_pred):
     labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
     # Decode labels, a.k.a. reference summaries into text
     decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-    result = rouge_score.compute(
-        predictions=decoded_preds,
-        references=decoded_labels,
-        rouge_types=["rouge1", "rouge2", "rougeL"]
+    result_rouge = rouge_score.get_scores(
+        decoded_preds,
+        decoded_labels
     )
-    score = bleu_score.compute(
+    score = sacrebleu_score.compute(
         predictions=decoded_preds,
         references=decoded_labels
     )
-    result["bleu"] = score["score"]
-    return {k: round(v, 4) for k, v in result.items()}
+    result = {}
+    logger.info(len(result_rouge))
+    result["rouge1"] = result_rouge[0]["rouge-1"]["f"]
+    result["rouge2"] = result_rouge[0]["rouge-2"]["f"]
+    result["rougeL"] = result_rouge[0]["rouge-l"]["f"]
+    result["sacrebleu"] = score["score"]
+    result = {k: round(v, 4) for k, v in result.items()}
+    logger.info(result)
+    return result
 
 # Dynamic padding in batch using a data collator
 data_collator = DataCollatorForSeq2Seq(tokenizer, model=model)
@@ -194,11 +153,18 @@ trainer = Seq2SeqTrainer(
     model,
     training_args,
     train_dataset=dataset_dict_tokenized["train"],
-    eval_dataset=dataset_dict_tokenized["val"],
+    eval_dataset=dataset_dict_tokenized["validation"],
     data_collator=data_collator,
     tokenizer=tokenizer,
     compute_metrics=compute_metrics,
 )
 
+class EvaluateFirstStepCallback(TrainerCallback):
+    def on_step_begin(self, args, state, control, **kwargs):
+        if state.global_step == 0:
+            control.should_evaluate = True
+
+trainer.add_callback(EvaluateFirstStepCallback())
+
 logger.info("*** Start training ***")
-trainer.train()
+trainer.predict(dataset_dict_tokenized["validation"])

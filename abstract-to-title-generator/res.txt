@@ -1,0 +1,236 @@
+case95: 
+abstract:   Generative Adversarial Networks (GANs) are able to learn mappings between
+simple, relatively low-dimensional, random distributions and points on the
+manifold of realistic images in image-space. The semantics of this mapping,
+however, are typically entangled such that meaningful image properties cannot
+be controlled independently of one another. Conditional GANs (cGANs) provide a
+potential solution to this problem, allowing specific semantics to be enforced
+during training. This solution, however, depends on the availability of precise
+labels, which are sometimes difficult or near impossible to obtain, e.g. labels
+representing lighting conditions or describing the background. In this paper we
+introduce a new formulation of the cGAN that is able to learn disentangled,
+multivariate models of semantically meaningful variation and which has the
+advantage of requiring only the weak supervision of binary attribute labels.
+For example, given only labels of ambient / non-ambient lighting, our method is
+able to learn multivariate lighting models disentangled from other factors such
+as the identity and pose. We coin the method intra-class variation isolation
+(IVI) and the resulting network the IVI-GAN. We evaluate IVI-GAN on the CelebA
+dataset and on synthetic 3D morphable model data, learning to disentangle
+attributes such as lighting, pose, expression, and even the background.
+
+original title: Taking Control of Intra-class Variation in Conditional GANs Under Weak
+  Supervision
+original model title: e.g. labels of ambient / non-ambient lighting. This approach is called intra-class variation isolation (IVI) . IVI-GAN learns to disentangle attributes such as lighting, pose, expression, and the background.
+22000 finetuned model title: Intra-Class Variation Isolation Learning in Conditional GANs
+45000 finetuned model title: IVI-GAN: Learning to Disentangle Multivariate Models of Semantically Meaningful Variation without Label Supervision
+
+
+case471: 
+abstract:   Bidirectional Long Short-Term Memory Network (Bi-LSTM) has shown promising
+performance in sentiment classification task. It processes inputs as sequence
+of information. Due to this behavior, sentiment predictions by Bi-LSTM were
+influenced by words sequence and the first or last phrases of the texts tend to
+have stronger features than other phrases. Meanwhile, in the problem scope of
+Indonesian sentiment analysis, phrases that express the sentiment of a document
+might not appear in the first or last part of the document that can lead to
+incorrect sentiment classification. To this end, we propose the using of an
+existing document representation method called paragraph vector as additional
+input features for Bi-LSTM. This vector provides information context of the
+document for each sequence processing. The paragraph vector is simply
+concatenated to each word vector of the document. This representation also
+helps to differentiate ambiguous Indonesian words. Bi-LSTM and paragraph vector
+were previously used as separate methods. Combining the two methods has shown a
+significant performance improvement of Indonesian sentiment analysis model.
+Several case studies on testing data showed that the proposed method can handle
+the sentiment phrases position problem encountered by Bi-LSTM.
+
+original title: Improving Bi-LSTM Performance for Indonesian Sentiment Analysis Using
+  Paragraph Vector
+original model title: The Indonesian sentiment analysis model. It processes inputs as a sequence of information. Indonesian sentiment analysis model. Combining the two methods has shown promising performance..
+22000 finetuned model title: Indonesian Sentiment Analysis with Paragraph Vector
+45000 finetuned model title: Paragraph Vector based Bidirectional LSTM for Indonesian Sentiment Analysis
+
+
+case577: 
+abstract:   With the demand for machine learning increasing, so does the demand for tools
+which make it easier to use. Automated machine learning (AutoML) tools have
+been developed to address this need, such as the Tree-Based Pipeline
+Optimization Tool (TPOT) which uses genetic programming to build optimal
+pipelines. We introduce Layered TPOT, a modification to TPOT which aims to
+create pipelines equally good as the original, but in significantly less time.
+This approach evaluates candidate pipelines on increasingly large subsets of
+the data according to their fitness, using a modified evolutionary algorithm to
+allow for separate competition between pipelines trained on different sample
+sizes. Empirical evaluation shows that, on sufficiently large datasets, Layered
+TPOT indeed finds better models faster.
+
+original title: Layered TPOT: Speeding up Tree-based Pipeline Optimization
+original model title: Automated Machine Learning (AutoML) tools have been developed to address this need. Tree-Based Pipeline Optimization Tool (TPOT) which uses genetic programming to build optimal pipelines. TPOT is a modification to TPOT which aims to create pipelines faster.
+22000 finetuned model title: Layered TPOT: Automated Tree-Based Pipeline Optimization
+45000 finetuned model title: Evaluating Tree-Based Pipeline Optimization Tools with Layered Evolution
+
+
+case502: 
+abstract:   This paper addresses fundamental issues on the nature of the concepts and
+structures of fuzzy logic, focusing, in particular, on the conceptual and
+functional differences that exist between probabilistic and possibilistic
+approaches. A semantic model provides the basic framework to define
+possibilistic structures and concepts by means of a function that quantifies
+proximity, closeness, or resemblance between pairs of possible worlds. The
+resulting model is a natural extension, based on multiple conceivability
+relations, of the modal logic concepts of necessity and possibility. By
+contrast, chance-oriented probabilistic concepts and structures rely on
+measures of set extension that quantify the proportion of possible worlds where
+a proposition is true. Resemblance between possible worlds is quantified by a
+generalized similarity relation: a function that assigns a number between O and
+1 to every pair of possible worlds. Using this similarity relation, which is a
+form of numerical complement of a classic metric or distance, it is possible to
+define and interpret the major constructs and methods of fuzzy logic:
+conditional and unconditioned possibility and necessity distributions and the
+generalized modus ponens of Zadeh.
+
+original title: Possibility as Similarity: the Semantics of Fuzzy Logic
+original model title: possibilistic concepts and structures rely on measures of set extension that quantify the proportion of possible worlds where a proposition is true. By contrast, chance-oriented probabilistic concepts and structures rely on measures of set extension that quantify the proportion of possible worlds where a proposition is true.
+22000 finetuned model title: Possibilistic Fuzzy Logic
+45000 finetuned model title: Possibilistic relations with respect to set extensions
+
+
+case539: 
+abstract:   Being able to reason in an environment with a large number of discrete
+actions is essential to bringing reinforcement learning to a larger class of
+problems. Recommender systems, industrial plants and language models are only
+some of the many real-world tasks involving large numbers of discrete actions
+for which current methods are difficult or even often impossible to apply. An
+ability to generalize over the set of actions as well as sub-linear complexity
+relative to the size of the set are both necessary to handle such tasks.
+Current approaches are not able to provide both of these, which motivates the
+work in this paper. Our proposed approach leverages prior information about the
+actions to embed them in a continuous space upon which it can generalize.
+Additionally, approximate nearest-neighbor methods allow for logarithmic-time
+lookup complexity relative to the number of actions, which is necessary for
+time-wise tractable training. This combined approach allows reinforcement
+learning methods to be applied to large-scale learning problems previously
+intractable with current methods. We demonstrate our algorithm's abilities on a
+series of tasks having up to one million actions.
+
+original title: Deep Reinforcement Learning in Large Discrete Action Spaces
+original model title: Current methods are not able to provide both of these. . large-scale learning problems previously intractable with current methods. our proposed approach..
+22000 finetuned model title: Embedding Priors for Large-Scale Reinforcement Learning
+45000 finetuned model title: Generalizing Discrete Actions using Nearest-Neighbor Methods
+
+
+case100: 
+abstract:   We describe a representation in a high-level transition system for policies
+that express a reactive behavior for the agent. We consider a target decision
+component that figures out what to do next and an (online) planning capability
+to compute the plans needed to reach these targets. Our representation allows
+one to analyze the flow of executing the given reactive policy, and to
+determine whether it works as expected. Additionally, the flexibility of the
+representation opens a range of possibilities for designing behaviors.
+
+original title: Reactive Policies with Planning for Action Languages
+original model title: We describe a representation in a high-level transition system for reactive policies. This paper describes our representation.
+22000 finetuned model title: Reactive Policy Representation in a High-Level Transition System
+45000 finetuned model title: A Representation for Planning
+
+
+case600: 
+abstract:   Distribution and sample models are two popular model choices in model-based
+reinforcement learning (MBRL). However, learning these models can be
+intractable, particularly when the state and action spaces are large.
+Expectation models, on the other hand, are relatively easier to learn due to
+their compactness and have also been widely used for deterministic
+environments. For stochastic environments, it is not obvious how expectation
+models can be used for planning as they only partially characterize a
+distribution. In this paper, we propose a sound way of using approximate
+expectation models for MBRL. In particular, we 1) show that planning with an
+expectation model is equivalent to planning with a distribution model if the
+state value function is linear in state features, 2) analyze two common
+parametrization choices for approximating the expectation: linear and
+non-linear expectation models, 3) propose a sound model-based policy evaluation
+algorithm and present its convergence results, and 4) empirically demonstrate
+the effectiveness of the proposed planning algorithm.
+
+original title: Planning with Expectation Models
+original model title: distribution and sample models are two popular model choices in MBRL. Expectation models, on the other hand, are relatively easier to learn due to their compactness and have also been widely used for deterministic environments.
+22000 finetuned model title: Approximate Expectation Models for Model-Based Reinforcement Learning
+45000 finetuned model title: Approximate Expectation Models for Planning in Model-Based Reinforcement Learning
+
+
+case823: 
+abstract:   One of the basic tasks which is responded for head of each university
+department, is employing lecturers based on some default factors such as
+experience, evidences, qualifies and etc. In this respect, to help the heads,
+some automatic systems have been proposed until now using machine learning
+methods, decision support systems (DSS) and etc. According to advantages and
+disadvantages of the previous methods, a full automatic system is designed in
+this paper using expert systems. The proposed system is included two main
+steps. In the first one, the human expert's knowledge is designed as decision
+trees. The second step is included an expert system which is evaluated using
+extracted rules of these decision trees. Also, to improve the quality of the
+proposed system, a majority voting algorithm is proposed as post processing
+step to choose the best lecturer which satisfied more expert's decision trees
+for each course. The results are shown that the designed system average
+accuracy is 78.88. Low computational complexity, simplicity to program and are
+some of other advantages of the proposed system.
+
+original title: Design and Development of an Expert System to Help Head of University
+  Departments
+original model title: One of the basic tasks which is answered for head of each university department, is employing lecturers based on default factors such as experience, evidences, qualifies and etc. In this paper, a full automatic system is proposed in this paper using expert systems.
+22000 finetuned model title: A Full Automatic System Design Using Expert Systems
+45000 finetuned model title: Full automatic system based on human expert's knowledge
+
+
+case991: 
+abstract:   Reward functions are a common way to specify the objective of a robot. As
+designing reward functions can be extremely challenging, a more promising
+approach is to directly learn reward functions from human teachers.
+Importantly, data from human teachers can be collected either passively or
+actively in a variety of forms: passive data sources include demonstrations,
+(e.g., kinesthetic guidance), whereas preferences (e.g., comparative rankings)
+are actively elicited. Prior research has independently applied reward learning
+to these different data sources. However, there exist many domains where
+multiple sources are complementary and expressive. Motivated by this general
+problem, we present a framework to integrate multiple sources of information,
+which are either passively or actively collected from human users. In
+particular, we present an algorithm that first utilizes user demonstrations to
+initialize a belief about the reward function, and then actively probes the
+user with preference queries to zero-in on their true reward. This algorithm
+not only enables us combine multiple data sources, but it also informs the
+robot when it should leverage each type of information. Further, our approach
+accounts for the human's ability to provide data: yielding user-friendly
+preference queries which are also theoretically optimal. Our extensive
+simulated experiments and user studies on a Fetch mobile manipulator
+demonstrate the superiority and the usability of our integrated framework.
+
+original title: Learning Reward Functions from Diverse Sources of Human Feedback:
+  Optimally Integrating Demonstrations and Preferences
+original model title: reward functions are a common way to specify the objective of a robot. Reward functions are a common way to specify the objective of a robot. However, prior research has independently applied reward learning to these different sources of information. Here, we present a framework to integrate multiple sources of information, which are either passively or actively collected from human users . Furthermore, our approach accounts for the human's ability to provide data: yielding user-friendly preference queries which are also theoretically optimal.
+22000 finetuned model title: Integrating Multiple Data Sources for Reward Learning
+45000 finetuned model title: Integrating Multiple Sources for Reward Learning
+
+
+case908: 
+abstract:   In recent years, there has been an increased emphasis on understanding and
+mitigating adverse impacts of artificial intelligence (AI) technologies on
+society. Across academia, industry, and government bodies, a variety of
+endeavours are being pursued towards enhancing AI ethics. A significant
+challenge in the design of ethical AI systems is that there are multiple
+stakeholders in the AI pipeline, each with their own set of constraints and
+interests. These different perspectives are often not understood, due in part
+to communication gaps.For example, AI researchers who design and develop AI
+models are not necessarily aware of the instability induced in consumers' lives
+by the compounded effects of AI decisions. Educating different stakeholders
+about their roles and responsibilities in the broader context becomes
+necessary. In this position paper, we outline some potential ways in which
+generative artworks can play this role by serving as accessible and powerful
+educational tools for surfacing different perspectives. We hope to spark
+interdisciplinary discussions about computational creativity broadly as a tool
+for enhancing AI ethics.
+
+original title: Building Bridges: Generative Artworks to Explore AI Ethics
+original model title: . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+22000 finetuned model title: Generative Art as a Tool for Enhancing AI Ethics
+45000 finetuned model title: Telling the Stories of AI: Increasing the Awareness of AI Ethics through Generative Artwork
+
+

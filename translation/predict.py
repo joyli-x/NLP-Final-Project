@@ -2,18 +2,18 @@ import nltk
 from nltk.tokenize import sent_tokenize
 import numpy as np
 import wandb
-from datasets import load_from_disk, load_metric
+from datasets import load_from_disk, load_metric, load_dataset
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
-original_model_path = 't5-base'
+original_model_path = 'google/mt5-small'
 original_model = AutoModelForSeq2SeqLM.from_pretrained(original_model_path).to('cuda')
 original_tokenizer = AutoTokenizer.from_pretrained(original_model_path)
 
-model_path = "/DATA1/xuechang/lzy/NLP-Final-Project/abstract-to-title-generator/out/a2t_t5-base_seed_43/checkpoint-45000"
+model_path = "/DATA1/xuechang/lzy/NLP-Final-Project/translation/out/trans_google_mt5-small_seed_42_lr_0.0005/checkpoint-10500"
 model = AutoModelForSeq2SeqLM.from_pretrained(model_path).to('cuda')
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 
-model_path2 = "/DATA1/xuechang/lzy/NLP-Final-Project/abstract-to-title-generator/out/a2t_t5-base_seed_43_lr_0.0001/checkpoint-22000"
+model_path2 = "/DATA1/xuechang/lzy/NLP-Final-Project/translation/out/trans_google_mt5-small_seed_42_lr_0.001/checkpoint-6500"
 model2 = AutoModelForSeq2SeqLM.from_pretrained(model_path2).to('cuda')
 tokenizer2 = AutoTokenizer.from_pretrained(model_path2)
 
@@ -40,22 +40,26 @@ max_gen_length = 128
 # 80.1% top-1 on ImageNet in linear evaluation with ViT-Base"""
 
 # Load the processed data
-dataset = load_from_disk('arxiv_AI_dataset')
+data_files = {'test': './data/alt/test.csv'}
+dataset = load_dataset(
+    "csv",
+    delimiter=",",
+    column_names=['en', 'zh'],
+    data_files=data_files
+)
 
 # 在1,1000中随机20个数
-random_list = np.random.randint(1, 1000, size=10)
+random_list = np.random.randint(1, 1000, size=20)
 
 with open('res.txt', 'w') as f:
     for i in random_list:
-        abstract = dataset['test'][int(i)]['abstract']
-        original_title = dataset['test'][int(i)]['title']
-        prompting_inputs = f"abstract: {abstract}\ntitle: "
+        abstract = dataset['test'][int(i)]['en']
+        original_title = dataset['test'][int(i)]['zh']
         print(f'case{i}: ', file=f)
-        print(f"abstract: {abstract}", file=f)
-        print(f"original title: {original_title}", file=f)
+        print(f"en: {abstract}", file=f)
+        print(f"gt translation: {original_title}", file=f)
 
         inputs = tokenizer([abstract], max_length=512, return_tensors='pt')
-        prompting_inputs = tokenizer([prompting_inputs], max_length=512, return_tensors='pt')
 
         # original
         title_ids = original_model.generate(
@@ -64,10 +68,11 @@ with open('res.txt', 'w') as f:
             temperature=temperature, 
             max_length=max_gen_length,
             do_sample=True, 
-            early_stopping=True
+            early_stopping=True,
+            # truncation=True,
         )
         title = original_tokenizer.decode(title_ids[0].tolist(), skip_special_tokens=True, clean_up_tokenization_spaces=False)
-        print(f"original model title: {title}", file=f)
+        print(f"original model translation: {title}", file=f)
 
         # finetune
         title_ids = model2.generate(
@@ -76,10 +81,11 @@ with open('res.txt', 'w') as f:
             temperature=temperature, 
             max_length=max_gen_length, 
             do_sample=True,
-            early_stopping=True
+            early_stopping=True,
+            # truncation=True,
         )
         title = tokenizer2.decode(title_ids[0].tolist(), skip_special_tokens=True, clean_up_tokenization_spaces=False)
-        print(f"22000 finetuned model title: {title}", file=f)
+        print(f"11000 finetuned model translation: {title}", file=f)
 
         # finetune
         title_ids = model.generate(
@@ -88,9 +94,10 @@ with open('res.txt', 'w') as f:
             temperature=temperature, 
             max_length=max_gen_length, 
             do_sample=True,
-            early_stopping=True
+            early_stopping=True,
+            # truncation=True,
         )
         title = tokenizer.decode(title_ids[0].tolist(), skip_special_tokens=True, clean_up_tokenization_spaces=False)
-        print(f"45000 finetuned model title: {title}", file=f)
+        print(f"45000 finetuned model translation: {title}", file=f)
 
         print('\n', file=f)

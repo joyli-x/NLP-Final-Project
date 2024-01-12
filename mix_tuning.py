@@ -6,7 +6,7 @@ import logging
 import argparse
 import evaluate
 import torch
-from datasets import load_dataset, load_from_disk, load_metric
+from datasets import load_dataset, load_from_disk, concatenate_datasets, DatasetDict
 from transformers import get_linear_schedule_with_warmup
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, AdamW, \
                          DataCollatorForSeq2Seq, Seq2SeqTrainingArguments, Seq2SeqTrainer, set_seed, TrainerCallback
@@ -46,25 +46,42 @@ model = AutoModelForSeq2SeqLM.from_pretrained(args.model_path)
 model = model.cuda()
 
 # Data
-data_files = {'train': './data/alt/train.csv', 'validation': './data/alt/val.csv'}
-dataset_dict = load_dataset(
+# a2t
+a2t_dataset = load_from_disk('./abstract-to-title-generator/arxiv_AI_dataset')
+
+# translation
+trans_data_files = {'train': './translation/data/alt/train.csv', 'validation': './translation/data/alt/val.csv'}
+trans_dataset = load_dataset(
     "csv",
     delimiter=",",
     column_names=['en', 'zh'],
-    data_files=data_files
+    data_files=trans_data_files
 )
 
-def transform_features_translation(example):
+def transform_features_a2t(example):
     # Engilsh to Chinese
-    new_example = {'en': 'translate English to Chinese: ' + example['en'], 'zh': example['zh']}
+    new_example = {'input': 'abstract to title: ' + example['abstract'], 'output': example['title']}
     return new_example
 
 # Process dataset
-dataset_dict = dataset_dict.map(transform_features_translation, remove_columns=['en', 'zh'])
+a2t_dataset = a2t_dataset.map(transform_features_a2t, remove_columns=['abstract', 'title'])
+
+def transform_features_translation(example):
+    # Engilsh to Chinese
+    new_example = {'input': 'translate English to Chinese: ' + example['en'], 'output': example['zh']}
+    return new_example
+
+# Process dataset
+trans_dataset = trans_dataset.map(transform_features_translation, remove_columns=['en', 'zh'])
+
+combined_dataset_train = concatenate_datasets([trans_dataset['train'], a2t_dataset['train']])
+combined_dataset_val = concatenate_datasets([trans_dataset['validation'], a2t_dataset['val']])
+combined_dataset = DatasetDict({'train': combined_dataset_train, 'validation': combined_dataset_val})
+
 
 def batch_tokenize_fn(examples):
-    sources = examples['en']
-    targets = examples['zh']
+    sources = examples['input']
+    targets = examples['output']
     model_inputs = tokenizer(sources, max_length=args.src_max_length, truncation=True)
 
     with tokenizer.as_target_tokenizer():
@@ -79,15 +96,15 @@ def batch_tokenize_fn(examples):
     return model_inputs
 
 
-dataset_dict_tokenized = dataset_dict.map(
+dataset_dict_tokenized = combined_dataset.map(
     batch_tokenize_fn,
     batched=True,
-    remove_columns=dataset_dict["train"].column_names
+    remove_columns=combined_dataset["train"].column_names
 )
 
 log_every = 500
-eval_every = 500
-save_steps = 500
+eval_every = 1000
+save_steps = 1000
 
 
 # Define training arguments
